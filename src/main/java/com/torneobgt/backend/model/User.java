@@ -1,7 +1,12 @@
 package com.torneobgt.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.torneobgt.backend.model.enums.Role;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,17 +24,19 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore 
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role; // "USUARIO" o "LIDER"
+    private Role role;
 
     private String nombre;
 
     // Constructores
     public User() {}
 
-    public User(Long id, String email, String password, String role, String nombre) {
+    public User(Long id, String email, String password, Role role, String nombre) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -41,13 +48,13 @@ public class User {
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public String getPassword() { return password; }
-    public String getRole() { return role; }
+    public Role getRole() { return role; }
     public String getNombre() { return nombre; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
     public void setEmail(String email) { this.email = email; }
     public void setPassword(String password) { this.password = password; }
-    public void setRole(String role) { this.role = role; }
+    public void setRole(Role role) { this.role = role; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 }

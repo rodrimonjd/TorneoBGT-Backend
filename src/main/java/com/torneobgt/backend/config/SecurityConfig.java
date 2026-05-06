@@ -30,19 +30,20 @@ public class SecurityConfig {
                 config.setAllowedHeaders(List.of("*"));
                 return config;
             }))
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
-                .disable()
-            )
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/equipo/**").permitAll()
+                .requestMatchers("/api/torneo/**").permitAll()
+                .requestMatchers("/api/solicitud/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin()) 
+                .frameOptions(frame -> frame.sameOrigin())
             );
-
         return http.build();
     }
 }

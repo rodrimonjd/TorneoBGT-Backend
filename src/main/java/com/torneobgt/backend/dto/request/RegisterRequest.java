@@ -1,4 +1,4 @@
-package com.torneobgt.backend.model;
+package com.torneobgt.backend.dto.request;
 
 public class RegisterRequest {
 

@@ -1,12 +1,15 @@
 package com.torneobgt.backend.service;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
-import java.util.Date;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
@@ -16,11 +19,11 @@ public class JwtService {
 
     @Value("${jwt.expiration}")
     private long expiration;
-
-    private Key getKey() {
+    
+    private SecretKey getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
-
+    
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)
@@ -44,5 +47,14 @@ public class JwtService {
         } catch (JwtException e) {
             return false;
         }
+    }
+
+    public String extractRole(String token) {
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
     }
 }

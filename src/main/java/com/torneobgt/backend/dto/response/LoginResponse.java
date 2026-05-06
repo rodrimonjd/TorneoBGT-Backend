@@ -1,4 +1,4 @@
-package com.torneobgt.backend.model;
+package com.torneobgt.backend.dto.response;
 
 public class LoginResponse {
 

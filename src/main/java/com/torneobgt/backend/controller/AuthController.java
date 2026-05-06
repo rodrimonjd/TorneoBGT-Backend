@@ -11,10 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.torneobgt.backend.model.LoginRequest;
-import com.torneobgt.backend.model.LoginResponse;
-import com.torneobgt.backend.model.RegisterRequest;
+import com.torneobgt.backend.dto.request.LoginRequest;
+import com.torneobgt.backend.dto.request.RegisterRequest;
+import com.torneobgt.backend.dto.response.LoginResponse;
 import com.torneobgt.backend.model.User;
+import com.torneobgt.backend.model.enums.Role;
 import com.torneobgt.backend.service.JwtService;
 import com.torneobgt.backend.service.UserService;
 
@@ -46,17 +47,17 @@ public class AuthController {
                     .body(Map.of("message", "Credenciales inválidas"));
         }
 
-        if (!user.getRole().equalsIgnoreCase(request.getRoleSolicited())) {
+        if (!user.getRole().name().equalsIgnoreCase(request.getRoleSolicited())) {
             return ResponseEntity.status(403)
                     .body(Map.of("message",
                         "No tienes permisos para ingresar como " + request.getRoleSolicited()));
         }
 
-        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
         return ResponseEntity.ok(new LoginResponse(
                 token,
-                user.getRole(),
+                user.getRole().name(),
                 user.getNombre(),
                 "Login exitoso"
         ));
@@ -73,7 +74,7 @@ public class AuthController {
         user.setNombre(request.getNombre());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
-        user.setRole(request.getRole());
+        user.setRole(Role.valueOf(request.getRole().toUpperCase()));
 
         User saved = userService.save(user);
 
