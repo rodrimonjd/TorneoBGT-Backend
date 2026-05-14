@@ -20,27 +20,30 @@ public class SolicitudService {
 
     @Autowired
     private TorneoRepository torneoRepository;
+    
+    @Autowired
+    private TablaPosicionesService tablaPosicionesService;
 
-    // usuario envia solicitud
+
     public Solicitud enviarSolicitud(Long torneoId, String emailUsuario) {
 
-        // busca el equipo del usuario
+     
         Equipo equipo = equipoRepository.findByDuenoEmail(emailUsuario)
             .orElseThrow(() -> new RuntimeException("No tienes un equipo registrado"));
 
         Torneo torneo = torneoRepository.findById(torneoId)
             .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
 
-        // valida que el torneo esté abierto
+       
         if (torneo.getEstado() != EstadoTorneo.INSCRIPCION_ABIERTA) {
             throw new IllegalStateException("El torneo no está abierto para inscripciones");
         }
 
-        // valida que no haya enviado solicitud antes
+   
         solicitudRepository.findByEquipoIdAndTorneoId(equipo.getId(), torneoId)
             .ifPresent(s -> { throw new IllegalStateException("Ya enviaste una solicitud a este torneo"); });
 
-        // valida que no se haya llenado el torneo
+      
         long aprobadas = solicitudRepository
             .findByTorneoIdAndEstado(torneoId, EstadoSolicitud.APROBADA).size();
         if (aprobadas >= torneo.getMaxEquipos()) {
@@ -55,17 +58,24 @@ public class SolicitudService {
         return solicitudRepository.save(solicitud);
     }
 
-    // lider ve solicitudes de su torneo
+
     public List<Solicitud> getSolicitudesByTorneo(Long torneoId) {
         return solicitudRepository.findByTorneoId(torneoId);
     }
-
-    // lider aprueba o rechaza
+    
     public Solicitud responderSolicitud(Long solicitudId, String nuevoEstado) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
             .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
         solicitud.setEstado(EstadoSolicitud.valueOf(nuevoEstado.toUpperCase()));
+
+        if (solicitud.getEstado() == EstadoSolicitud.APROBADA) {
+            tablaPosicionesService.inicializarEquipo(
+                solicitud.getEquipo().getId(),
+                solicitud.getTorneo().getId()
+            );
+        }
+
         return solicitudRepository.save(solicitud);
     }
 }
