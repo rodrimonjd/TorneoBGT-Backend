@@ -19,6 +19,11 @@ public class EquipoService {
     private UserRepository userRepository;
 
     public Equipo crearEquipo(EquipoDTO request, String email) {
+    	
+    	List<Equipo> equiposExistentes = equipoRepository.findByDuenoEmail(email);
+        if (!equiposExistentes.isEmpty()) {
+            throw new IllegalStateException("Ya tienes un equipo registrado");
+        }
 
         // valida cantidad de jugadores
         int cantidad = request.getJugadores().size();
@@ -50,5 +55,9 @@ public class EquipoService {
 
         equipo.setJugadores(jugadores);
         return equipoRepository.save(equipo);
+    }
+
+    public List<Equipo> getEquiposByEmail(String email) {
+        return equipoRepository.findByDuenoEmail(email);
     }
 }

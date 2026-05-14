@@ -1,11 +1,20 @@
 package com.torneobgt.backend.controller;
 
-import com.torneobgt.backend.model.HistorialTorneo;
-import com.torneobgt.backend.service.HistorialTorneoService;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.Map;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.torneobgt.backend.model.HistorialTorneo;
+import com.torneobgt.backend.service.HistorialTorneoService;
 
 @RestController
 @RequestMapping("/api/historial")
@@ -17,9 +26,9 @@ public class HistorialTorneoController {
 
     @PutMapping("/finalizar/{torneoId}")
     public ResponseEntity<?> finalizarTorneo(
-            @PathVariable Long torneoId,
-            @RequestHeader("X-User-Email") String email) {
+            @PathVariable Long torneoId){
         try {
+        	String email = SecurityContextHolder.getContext().getAuthentication().getName();
             HistorialTorneo historial = historialService.finalizarTorneo(torneoId, email);
             return ResponseEntity.ok(Map.of(
                 "message", "Torneo finalizado y archivado",
@@ -45,8 +54,8 @@ public class HistorialTorneoController {
     }
 
     @GetMapping("/mis-torneos")
-    public ResponseEntity<?> getHistorialLider(
-            @RequestHeader("X-User-Email") String email) {
+    public ResponseEntity<?> getHistorialLider() {
+    	 String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(historialService.getHistorialByLider(email));
     }
 }

@@ -1,12 +1,21 @@
 package com.torneobgt.backend.controller;
 
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.torneobgt.backend.dto.TorneoDTO;
 import com.torneobgt.backend.model.Torneo;
 import com.torneobgt.backend.service.TorneoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/torneo")
@@ -18,9 +27,9 @@ public class TorneoController {
 
     @PostMapping("/crear")
     public ResponseEntity<?> crearTorneo(
-            @RequestBody TorneoDTO request,
-            @RequestHeader("X-User-Email") String email) {
+            @RequestBody TorneoDTO request) {
         try {
+        	String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Torneo saved = torneoService.crearTorneo(request, email);
             return ResponseEntity.ok(Map.of(
                 "message", "Torneo creado exitosamente",
@@ -41,8 +50,8 @@ public class TorneoController {
     }
 
     @GetMapping("/mis-torneos")
-    public ResponseEntity<?> getMisTorneos(
-            @RequestHeader("X-User-Email") String email) {
+    public ResponseEntity<?> getMisTorneos() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(torneoService.getMisTorneos(email));
     }
 }

@@ -1,12 +1,21 @@
 package com.torneobgt.backend.controller;
 
-import com.torneobgt.backend.model.Solicitud;
-import com.torneobgt.backend.service.SolicitudService;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import com.torneobgt.backend.model.Solicitud;
+import com.torneobgt.backend.service.SolicitudService;
 
 @RestController
 @RequestMapping("/api/solicitud")
@@ -19,9 +28,9 @@ public class SolicitudController {
     // usuario solicita inscripcion
     @PostMapping("/enviar/{torneoId}")
     public ResponseEntity<?> enviarSolicitud(
-            @PathVariable Long torneoId,
-            @RequestHeader("X-User-Email") String email) {
+            @PathVariable Long torneoId) {
         try {
+        	String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Solicitud saved = solicitudService.enviarSolicitud(torneoId, email);
             return ResponseEntity.ok(Map.of(
                 "message", "Solicitud enviada exitosamente",

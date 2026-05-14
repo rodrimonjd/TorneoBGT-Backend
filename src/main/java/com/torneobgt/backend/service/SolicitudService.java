@@ -1,13 +1,18 @@
 package com.torneobgt.backend.service;
 
-import com.torneobgt.backend.model.*;
-import com.torneobgt.backend.model.enums.EstadoSolicitud;
-import com.torneobgt.backend.model.enums.EstadoTorneo;
-import com.torneobgt.backend.repository.*;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.torneobgt.backend.model.Equipo;
+import com.torneobgt.backend.model.Solicitud;
+import com.torneobgt.backend.model.Torneo;
+import com.torneobgt.backend.model.enums.EstadoSolicitud;
+import com.torneobgt.backend.model.enums.EstadoTorneo;
+import com.torneobgt.backend.repository.EquipoRepository;
+import com.torneobgt.backend.repository.SolicitudRepository;
+import com.torneobgt.backend.repository.TorneoRepository;
 
 @Service
 public class SolicitudService {
@@ -20,30 +25,28 @@ public class SolicitudService {
 
     @Autowired
     private TorneoRepository torneoRepository;
-    
+
     @Autowired
     private TablaPosicionesService tablaPosicionesService;
 
-
     public Solicitud enviarSolicitud(Long torneoId, String emailUsuario) {
 
-     
-        Equipo equipo = equipoRepository.findByDuenoEmail(emailUsuario)
-            .orElseThrow(() -> new RuntimeException("No tienes un equipo registrado"));
+        List<Equipo> equipos = equipoRepository.findByDuenoEmail(emailUsuario);
+        if (equipos.isEmpty()) {
+            throw new RuntimeException("No tienes un equipo registrado");
+        }
+        Equipo equipo = equipos.get(0);
 
         Torneo torneo = torneoRepository.findById(torneoId)
             .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
 
-       
         if (torneo.getEstado() != EstadoTorneo.INSCRIPCION_ABIERTA) {
             throw new IllegalStateException("El torneo no está abierto para inscripciones");
         }
 
-   
         solicitudRepository.findByEquipoIdAndTorneoId(equipo.getId(), torneoId)
             .ifPresent(s -> { throw new IllegalStateException("Ya enviaste una solicitud a este torneo"); });
 
-      
         long aprobadas = solicitudRepository
             .findByTorneoIdAndEstado(torneoId, EstadoSolicitud.APROBADA).size();
         if (aprobadas >= torneo.getMaxEquipos()) {
@@ -58,11 +61,10 @@ public class SolicitudService {
         return solicitudRepository.save(solicitud);
     }
 
-
     public List<Solicitud> getSolicitudesByTorneo(Long torneoId) {
         return solicitudRepository.findByTorneoId(torneoId);
     }
-    
+
     public Solicitud responderSolicitud(Long solicitudId, String nuevoEstado) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
             .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));

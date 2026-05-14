@@ -1,11 +1,11 @@
 package com.torneobgt.backend.repository;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.torneobgt.backend.model.Equipo;
 
 public interface EquipoRepository extends JpaRepository<Equipo, Long> {
-	Optional<Equipo> findByDuenoEmail(String email);
+	List<Equipo> findByDuenoEmail(String email);
 }
