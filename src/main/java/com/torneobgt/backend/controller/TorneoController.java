@@ -7,14 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.torneobgt.backend.dto.TorneoDTO;
 import com.torneobgt.backend.model.Torneo;
+import com.torneobgt.backend.repository.TorneoRepository;
 import com.torneobgt.backend.service.TorneoService;
 
 @RestController
@@ -24,6 +25,9 @@ public class TorneoController {
 
     @Autowired
     private TorneoService torneoService;
+    
+    @Autowired
+    private TorneoRepository torneoRepository;
 
     @PostMapping("/crear")
     public ResponseEntity<?> crearTorneo(
@@ -53,5 +57,12 @@ public class TorneoController {
     public ResponseEntity<?> getMisTorneos() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(torneoService.getMisTorneos(email));
+    }
+    
+    @GetMapping("/{torneoId}")
+    public ResponseEntity<?> getTorneoById(@PathVariable Long torneoId) {
+        return torneoRepository.findById(torneoId)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }

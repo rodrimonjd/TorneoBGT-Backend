@@ -59,6 +59,7 @@ public class AuthController {
                 token,
                 user.getRole().name(),
                 user.getNombre(),
+                user.getEmail(),
                 "Login exitoso"
         ));
     }
