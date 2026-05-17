@@ -33,10 +33,26 @@ public class TorneoService {
 
         return torneoRepository.save(torneo);
     }
+    
+    public Torneo cambiarEstado(Long torneoId, String email, String nuevoEstado) {
+        Torneo torneo = torneoRepository.findById(torneoId)
+            .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
+
+        if (!torneo.getLider().getEmail().equals(email)) {
+            throw new RuntimeException("No tienes permisos para modificar este torneo");
+        }
+        
+        if (torneo.getEstado() == EstadoTorneo.FINALIZADO) {
+            throw new IllegalStateException("No se puede modificar un torneo finalizado");
+        }
+
+        torneo.setEstado(EstadoTorneo.valueOf(nuevoEstado.toUpperCase()));
+        return torneoRepository.save(torneo);
+    }
 
     // todos los torneos públicos con inscripción abierta
     public List<Torneo> getTorneosPublicos() {
-        return torneoRepository.findByEstado(EstadoTorneo.INSCRIPCION_ABIERTA);
+    	return torneoRepository.findByEstadoNot(EstadoTorneo.FINALIZADO);
     }
 
     // torneos del líder autenticado

@@ -41,7 +41,11 @@ public class SolicitudService {
             .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
 
         if (torneo.getEstado() != EstadoTorneo.INSCRIPCION_ABIERTA) {
-            throw new IllegalStateException("El torneo no está abierto para inscripciones");
+            throw new IllegalStateException(
+                torneo.getEstado() == EstadoTorneo.EN_CURSO
+                ? "El torneo ya está en curso, no se aceptan nuevas inscripciones"
+                : "El torneo está finalizado, no se aceptan inscripciones"
+            );
         }
 
         solicitudRepository.findByEquipoIdAndTorneoId(equipo.getId(), torneoId)

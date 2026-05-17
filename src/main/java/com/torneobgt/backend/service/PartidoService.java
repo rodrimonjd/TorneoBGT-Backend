@@ -12,6 +12,7 @@ import com.torneobgt.backend.model.Equipo;
 import com.torneobgt.backend.model.Partido;
 import com.torneobgt.backend.model.Torneo;
 import com.torneobgt.backend.model.enums.EstadoPartido;
+import com.torneobgt.backend.model.enums.EstadoTorneo;
 import com.torneobgt.backend.repository.EquipoRepository;
 import com.torneobgt.backend.repository.PartidoRepository;
 import com.torneobgt.backend.repository.TorneoRepository;
@@ -21,6 +22,9 @@ public class PartidoService {
 
     @Autowired
     private PartidoRepository partidoRepository;
+    
+    @Autowired
+    private Torneo torneo;
 
     @Autowired
     private TorneoRepository torneoRepository;
@@ -32,6 +36,11 @@ public class PartidoService {
     private TablaPosicionesService tablaPosicionesService;
 
     public Partido crearPartido(PartidoDTO request) {
+    	
+    	if (torneo.getEstado() == EstadoTorneo.FINALIZADO) {
+    	    throw new IllegalStateException("No se pueden crear partidos en un torneo finalizado");
+    	}
+    	
         Torneo torneo = torneoRepository.findById(request.getTorneoId())
             .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
 
@@ -44,7 +53,7 @@ public class PartidoService {
         if (local.getId().equals(visitante.getId())) {
             throw new IllegalArgumentException("Un equipo no puede jugar contra sí mismo");
         }
-
+        
         Partido partido = new Partido();
         partido.setTorneo(torneo);
         partido.setEquipoLocal(local);
@@ -53,6 +62,8 @@ public class PartidoService {
         partido.setLugar(request.getLugar());
 
         return partidoRepository.save(partido);
+        
+        
     }
 
     public Partido actualizarMarcador(Long partidoId, ActualizarMarcadorRequest request) {
@@ -63,11 +74,20 @@ public class PartidoService {
             throw new IllegalStateException("El partido debe estar finalizado para ingresar el marcador");
         }
 
+        // guarda marcador anterior antes de actualizar
+        int golesLocalAnterior = partido.getGolesLocal() != null ? partido.getGolesLocal() : -1;
+        int golesVisitanteAnterior = partido.getGolesVisitante() != null ? partido.getGolesVisitante() : -1;
+        boolean teniaMarcador = golesLocalAnterior >= 0;
+
         partido.setGolesLocal(request.getGolesLocal());
         partido.setGolesVisitante(request.getGolesVisitante());
 
         Partido saved = partidoRepository.save(partido);
-        tablaPosicionesService.actualizarTabla(saved);
+
+        // actualiza tabla pasando el marcador anterior
+        tablaPosicionesService.actualizarTabla(
+            saved, golesLocalAnterior, golesVisitanteAnterior, teniaMarcador);
+
         return saved;
     }
 

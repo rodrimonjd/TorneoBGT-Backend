@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.torneobgt.backend.dto.TorneoDTO;
 import com.torneobgt.backend.model.Torneo;
+import com.torneobgt.backend.model.enums.EstadoTorneo;
 import com.torneobgt.backend.repository.TorneoRepository;
 import com.torneobgt.backend.service.TorneoService;
 
@@ -64,5 +66,19 @@ public class TorneoController {
         return torneoRepository.findById(torneoId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PutMapping("/estado/{torneoId}")
+    public ResponseEntity<?> cambiarEstado(
+            @PathVariable Long torneoId,
+            @RequestBody Map<String, String> body) {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            Torneo torneo = torneoService.cambiarEstado(torneoId, email, body.get("estado"));
+            return ResponseEntity.ok(Map.of("message", "Estado actualizado"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403)
+                .body(Map.of("message", e.getMessage()));
+        }
     }
 }

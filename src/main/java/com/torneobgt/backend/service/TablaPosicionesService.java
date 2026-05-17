@@ -46,9 +46,7 @@ public class TablaPosicionesService {
 
     // actualiza la tabla cuando se registra un resultado
     @Transactional
-    public void actualizarTabla(Partido partido) {
-        if (partido.getEstado() != EstadoPartido.FINALIZADO) return;
-
+    public void actualizarTabla(Partido partido, int golesLocalAnt, int golesVisitanteAnt, boolean teniaMarcador) {
         Long torneoId = partido.getTorneo().getId();
         Long localId = partido.getEquipoLocal().getId();
         Long visitanteId = partido.getEquipoVisitante().getId();
@@ -63,19 +61,42 @@ public class TablaPosicionesService {
             .findByEquipoIdAndTorneoId(visitanteId, torneoId)
             .orElseThrow(() -> new RuntimeException("Equipo visitante no está en la tabla"));
 
-        // actualiza stats locales
+        // si ya tenía marcador, revierte el resultado anterior
+        if (teniaMarcador) {
+            local.setPartidosJugados(local.getPartidosJugados() - 1);
+            local.setGolesFavor(local.getGolesFavor() - golesLocalAnt);
+            local.setGolesContra(local.getGolesContra() - golesVisitanteAnt);
+            visitante.setPartidosJugados(visitante.getPartidosJugados() - 1);
+            visitante.setGolesFavor(visitante.getGolesFavor() - golesVisitanteAnt);
+            visitante.setGolesContra(visitante.getGolesContra() - golesLocalAnt);
+
+            if (golesLocalAnt > golesVisitanteAnt) {
+                local.setGanados(local.getGanados() - 1);
+                local.setPuntos(local.getPuntos() - 3);
+                visitante.setPerdidos(visitante.getPerdidos() - 1);
+            } else if (golesLocalAnt < golesVisitanteAnt) {
+                visitante.setGanados(visitante.getGanados() - 1);
+                visitante.setPuntos(visitante.getPuntos() - 3);
+                local.setPerdidos(local.getPerdidos() - 1);
+            } else {
+                local.setEmpatados(local.getEmpatados() - 1);
+                local.setPuntos(local.getPuntos() - 1);
+                visitante.setEmpatados(visitante.getEmpatados() - 1);
+                visitante.setPuntos(visitante.getPuntos() - 1);
+            }
+        }
+
+        // suma el nuevo resultado
         local.setPartidosJugados(local.getPartidosJugados() + 1);
         local.setGolesFavor(local.getGolesFavor() + golesLocal);
         local.setGolesContra(local.getGolesContra() + golesVisitante);
         local.setDiferenciaGoles(local.getGolesFavor() - local.getGolesContra());
 
-        // actualiza stats visitante
         visitante.setPartidosJugados(visitante.getPartidosJugados() + 1);
         visitante.setGolesFavor(visitante.getGolesFavor() + golesVisitante);
         visitante.setGolesContra(visitante.getGolesContra() + golesLocal);
         visitante.setDiferenciaGoles(visitante.getGolesFavor() - visitante.getGolesContra());
 
-        // asigna puntos
         if (golesLocal > golesVisitante) {
             local.setGanados(local.getGanados() + 1);
             local.setPuntos(local.getPuntos() + 3);

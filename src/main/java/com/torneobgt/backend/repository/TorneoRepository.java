@@ -9,4 +9,5 @@ import java.util.List;
 public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     List<Torneo> findByEstado(EstadoTorneo estado);
     List<Torneo> findByLiderEmail(String email);
+    List<Torneo> findByEstadoNot(EstadoTorneo estado);
 }
