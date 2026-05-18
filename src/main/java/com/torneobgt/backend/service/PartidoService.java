@@ -22,9 +22,6 @@ public class PartidoService {
 
     @Autowired
     private PartidoRepository partidoRepository;
-    
-    @Autowired
-    private Torneo torneo;
 
     @Autowired
     private TorneoRepository torneoRepository;
@@ -37,12 +34,13 @@ public class PartidoService {
 
     public Partido crearPartido(PartidoDTO request) {
     	
-    	if (torneo.getEstado() == EstadoTorneo.FINALIZADO) {
-    	    throw new IllegalStateException("No se pueden crear partidos en un torneo finalizado");
-    	}
-    	
         Torneo torneo = torneoRepository.findById(request.getTorneoId())
             .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
+
+
+        if (torneo.getEstado() == EstadoTorneo.FINALIZADO) {
+            throw new IllegalStateException("No se pueden crear partidos en un torneo finalizado");
+        }
 
         Equipo local = equipoRepository.findById(request.getEquipoLocalId())
             .orElseThrow(() -> new RuntimeException("Equipo local no encontrado"));
@@ -62,8 +60,6 @@ public class PartidoService {
         partido.setLugar(request.getLugar());
 
         return partidoRepository.save(partido);
-        
-        
     }
 
     public Partido actualizarMarcador(Long partidoId, ActualizarMarcadorRequest request) {
